@@ -9,7 +9,7 @@ const icons = [
   "check",
   "chevron-left",
   "chevron-right",
-  "clipboard",
+  "copy",
   "download",
   "external-link",
   "menu",

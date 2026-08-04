@@ -24,6 +24,41 @@
       .replace(/'/g, "&#039;");
   }
 
+  async function copyText(text) {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        // Fall through to the selection-based method when clipboard permission is denied.
+      }
+    }
+
+    const previouslyFocused = document.activeElement;
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.readOnly = true;
+    textArea.setAttribute("aria-hidden", "true");
+    textArea.style.position = "fixed";
+    textArea.style.inset = "0 auto auto -9999px";
+    textArea.style.opacity = "0";
+    textArea.style.fontSize = "16px";
+    body.appendChild(textArea);
+    textArea.focus({ preventScroll: true });
+    textArea.select();
+    textArea.setSelectionRange(0, textArea.value.length);
+
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } catch (error) {
+      copied = false;
+    }
+    textArea.remove();
+    previouslyFocused?.focus?.({ preventScroll: true });
+    return copied;
+  }
+
   const header = document.querySelector("[data-site-header]");
   function updateHeader() {
     if (header) header.classList.toggle("is-scrolled", window.scrollY > 18);
@@ -192,16 +227,52 @@
       button.className = "code-copy icon-button";
       button.title = "复制代码";
       button.setAttribute("aria-label", "复制代码");
-      button.innerHTML = `<img class="icon" src="${iconUrl("clipboard")}" alt="" width="17" height="17">`;
+      button.dataset.label = "复制";
+
+      const copyIcon = document.createElement("img");
+      copyIcon.className = "icon";
+      copyIcon.src = iconUrl("copy");
+      copyIcon.alt = "";
+      copyIcon.width = 17;
+      copyIcon.height = 17;
+
+      const copyStatus = document.createElement("span");
+      copyStatus.className = "sr-only";
+      copyStatus.setAttribute("aria-live", "polite");
+      button.append(copyIcon, copyStatus);
+
+      let resetCopyState;
+      function setCopyState(state, label) {
+        window.clearTimeout(resetCopyState);
+        button.classList.remove("is-copying", "is-copied", "is-copy-error");
+        button.classList.add(`is-${state}`);
+        button.dataset.label = label;
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        copyStatus.textContent = label;
+
+        if (state === "copied" || state === "copy-error") {
+          resetCopyState = window.setTimeout(() => {
+            button.classList.remove("is-copied", "is-copy-error");
+            button.dataset.label = "复制";
+            button.title = "复制代码";
+            button.setAttribute("aria-label", "复制代码");
+            copyIcon.src = iconUrl("copy");
+            copyStatus.textContent = "";
+          }, 1800);
+        }
+      }
+
       button.addEventListener("click", async () => {
-        const code = pre.querySelector("code")?.innerText || pre.innerText;
-        await navigator.clipboard.writeText(code);
-        button.innerHTML = `<img class="icon" src="${iconUrl("check")}" alt="" width="17" height="17">`;
-        button.classList.add("is-copied");
-        window.setTimeout(() => {
-          button.innerHTML = `<img class="icon" src="${iconUrl("clipboard")}" alt="" width="17" height="17">`;
-          button.classList.remove("is-copied");
-        }, 1600);
+        if (button.classList.contains("is-copying")) return;
+
+        const code = (pre.querySelector("code")?.textContent || pre.textContent || "").replace(/\n$/, "");
+        setCopyState("copying", "正在复制");
+        button.setAttribute("aria-busy", "true");
+        const copied = await copyText(code);
+        button.removeAttribute("aria-busy");
+        copyIcon.src = iconUrl(copied ? "check" : "copy");
+        setCopyState(copied ? "copied" : "copy-error", copied ? "已复制" : "复制失败");
       });
       wrapper.appendChild(button);
     });
