@@ -224,13 +224,12 @@
 
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "code-copy icon-button";
+      button.className = "code-copy";
       button.title = "复制代码";
       button.setAttribute("aria-label", "复制代码");
-      button.dataset.label = "复制";
 
       const copyIcon = document.createElement("img");
-      copyIcon.className = "icon";
+      copyIcon.className = "code-copy__icon";
       copyIcon.src = iconUrl("copy");
       copyIcon.alt = "";
       copyIcon.width = 17;
@@ -246,7 +245,6 @@
         window.clearTimeout(resetCopyState);
         button.classList.remove("is-copying", "is-copied", "is-copy-error");
         button.classList.add(`is-${state}`);
-        button.dataset.label = label;
         button.title = label;
         button.setAttribute("aria-label", label);
         copyStatus.textContent = label;
@@ -254,7 +252,6 @@
         if (state === "copied" || state === "copy-error") {
           resetCopyState = window.setTimeout(() => {
             button.classList.remove("is-copied", "is-copy-error");
-            button.dataset.label = "复制";
             button.title = "复制代码";
             button.setAttribute("aria-label", "复制代码");
             copyIcon.src = iconUrl("copy");
