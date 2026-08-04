@@ -1,0 +1,85 @@
+---
+layout: layouts/base.njk
+bodyClass: guide-page
+---
+{% from "components/icon.njk" import icon with context %}
+<div class="reading-progress" data-reading-progress></div>
+
+<div class="guide-shell">
+  <aside class="guide-sidebar" aria-label="指南导航">
+    <a class="guide-sidebar__back" href="{{ '/guides/' | url }}">{{ icon('chevron-left') }} 全部指南</a>
+    {% set currentSection = '' %}
+    <nav aria-label="全部指南">
+      {% for item in guides %}
+        {% if not item.hidden %}
+          {% if item.sectionLabel != currentSection %}
+            {% set currentSection = item.sectionLabel %}
+            <p class="guide-sidebar__label">{{ currentSection }}</p>
+          {% endif %}
+          <a href="{{ item.url | url }}"{% if item.id == guide.id %} aria-current="page"{% endif %}>{{ item.shortTitle }}</a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <article class="guide-article" data-guide-article>
+    <header class="article-header">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href="{{ '/guides/' | url }}">指南</a>
+        <span>/</span>
+        <span>{{ guide.sectionLabel }}</span>
+      </nav>
+      <div class="article-meta">
+        <span>{{ guide.platform }}</span>
+        <span>{{ guide.sectionLabel }}</span>
+      </div>
+      <h1>{{ guide.title }}</h1>
+      <p>{{ guide.summary }}</p>
+
+      {% if guide.resources %}
+        <nav class="article-resources" aria-label="相关下载">
+          {% for resource in guide.resources %}
+            <a href="{{ resource.url | url }}" download>
+              {{ icon('download') }}
+              <span>{{ resource.label }}</span>
+              <small>{{ resource.type }}</small>
+            </a>
+          {% endfor %}
+        </nav>
+      {% endif %}
+    </header>
+
+    <details class="mobile-toc">
+      <summary>{{ icon('book-open') }} 本页目录</summary>
+      <nav data-toc-mobile aria-label="移动端章节目录"></nav>
+    </details>
+
+    <div class="article-body" data-article-body>
+      {% if guide.stripLeadingHeading %}
+        {{ content | stripLeadingHeading | safe }}
+      {% else %}
+        {{ content | safe }}
+      {% endif %}
+    </div>
+
+    <nav class="article-pagination" aria-label="相邻指南">
+      {% if guide.previous %}
+        <a href="{{ guide.previous.url | url }}" class="article-pagination__previous">
+          {{ icon('chevron-left') }}
+          <span><small>上一篇</small>{{ guide.previous.title }}</span>
+        </a>
+      {% else %}<span></span>{% endif %}
+      {% if guide.next %}
+        <a href="{{ guide.next.url | url }}" class="article-pagination__next">
+          <span><small>下一篇</small>{{ guide.next.title }}</span>
+          {{ icon('chevron-right') }}
+        </a>
+      {% endif %}
+    </nav>
+  </article>
+
+  <aside class="guide-toc" aria-label="本页目录">
+    <p>本页目录</p>
+    <nav data-toc aria-label="章节目录"></nav>
+  </aside>
+</div>

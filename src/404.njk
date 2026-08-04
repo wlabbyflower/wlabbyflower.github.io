@@ -1,0 +1,16 @@
+---
+layout: layouts/base.njk
+title: 页面未找到
+permalink: /404.html
+eleventyExcludeFromCollections: true
+---
+{% from "components/icon.njk" import icon with context %}
+<section class="not-found section-wrap">
+  <p class="eyebrow">404</p>
+  <h1>这条配置路径不存在。</h1>
+  <p>返回指南库，或搜索你正在使用的客户端。</p>
+  <div>
+    <a class="button button--primary" href="{{ '/guides/' | url }}">浏览指南 {{ icon('arrow-right') }}</a>
+    <button class="button button--secondary" type="button" data-search-open>{{ icon('search') }} 搜索</button>
+  </div>
+</section>

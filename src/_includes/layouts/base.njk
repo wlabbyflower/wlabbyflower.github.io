@@ -1,0 +1,199 @@
+{% from "components/icon.njk" import icon with context %}
+<!DOCTYPE html>
+<html lang="{{ site.language }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f5f7">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="{{ description or site.description }}">
+    <title>{% if title and title != site.title %}{{ title }} · {% endif %}{{ site.title }}</title>
+    <script src="{{ '/assets/vendor/suncalc.js' | url }}"></script>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var storageKey = "peppapig-theme-mode";
+        var latitude = 39.9042;
+        var longitude = 116.4074;
+        var timer = 0;
+
+        root.classList.add("js");
+
+        function getStoredMode() {
+          try {
+            localStorage.removeItem("peppapig-theme");
+            var stored = localStorage.getItem(storageKey);
+            return stored === "light" || stored === "dark" ? stored : "auto";
+          } catch (error) {
+            return "auto";
+          }
+        }
+
+        function beijingNoon(date, dayOffset) {
+          var values = {};
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Shanghai",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+          }).formatToParts(date).forEach(function (part) {
+            if (part.type !== "literal") values[part.type] = Number(part.value);
+          });
+          return new Date(Date.UTC(values.year, values.month - 1, values.day + (dayOffset || 0), 4));
+        }
+
+        function solarWindow(date, dayOffset) {
+          if (!window.SunCalc) return null;
+          return window.SunCalc.getTimes(beijingNoon(date, dayOffset), latitude, longitude);
+        }
+
+        function automaticTheme(date) {
+          var times = solarWindow(date, 0);
+          if (times && isFinite(times.sunrise) && isFinite(times.sunset)) {
+            return date >= times.sunrise && date < times.sunset ? "light" : "dark";
+          }
+          var beijingHour = Number(new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Shanghai",
+            hour: "2-digit",
+            hourCycle: "h23"
+          }).format(date));
+          return beijingHour >= 6 && beijingHour < 18 ? "light" : "dark";
+        }
+
+        function applyTheme(mode) {
+          var effectiveTheme = mode === "auto" ? automaticTheme(new Date()) : mode;
+          root.dataset.themeMode = mode;
+          root.dataset.theme = effectiveTheme;
+          document.querySelector('meta[name="theme-color"]').content = effectiveTheme === "dark" ? "#000000" : "#f5f5f7";
+          window.dispatchEvent(new CustomEvent("peppapigthemechange", {
+            detail: { mode: mode, theme: effectiveTheme }
+          }));
+          return effectiveTheme;
+        }
+
+        function scheduleSolarChange() {
+          window.clearTimeout(timer);
+          if (root.dataset.themeMode !== "auto") return;
+          var now = new Date();
+          var today = solarWindow(now, 0);
+          var tomorrow = solarWindow(now, 1);
+          if (!today || !tomorrow) return;
+          var nextBoundary = now < today.sunrise ? today.sunrise : now < today.sunset ? today.sunset : tomorrow.sunrise;
+          timer = window.setTimeout(function () {
+            applyTheme("auto");
+            scheduleSolarChange();
+          }, Math.max(nextBoundary - now + 1000, 1000));
+        }
+
+        function setMode(mode) {
+          var nextMode = mode === "light" || mode === "dark" ? mode : "auto";
+          try {
+            localStorage.setItem(storageKey, nextMode);
+          } catch (error) {}
+          applyTheme(nextMode);
+          scheduleSolarChange();
+        }
+
+        window.peppaPigTheme = {
+          apply: applyTheme,
+          setMode: setMode,
+          schedule: scheduleSolarChange
+        };
+        applyTheme(getStoredMode());
+        scheduleSolarChange();
+      })();
+    </script>
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | url }}">
+  </head>
+  <body
+    class="{{ bodyClass or '' }}"
+    data-base-url="{{ '/' | url }}"
+    data-search-url="{{ '/search-index.json' | url }}"
+  >
+    <a class="skip-link" href="#main-content">跳到正文</a>
+
+    <header class="site-header" data-site-header>
+      <div class="site-header__inner">
+        <a class="brand" href="{{ '/' | url }}" aria-label="{{ site.title }}首页">
+          <span class="brand__mark" aria-hidden="true"><span></span></span>
+          <span class="brand__text">{{ site.shortTitle }}</span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="主导航">
+          <a href="{{ '/' | url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>首页</a>
+          <a href="{{ '/guides/' | url }}"{% if page.url and page.url.startsWith('/guides/') %} aria-current="page"{% endif %}>指南</a>
+          <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">源码 {{ icon('external-link', 'icon--small') }}</a>
+        </nav>
+
+        <div class="header-actions">
+          <button class="header-button header-button--search" type="button" data-search-open>
+            {{ icon('search') }}
+            <span>搜索</span>
+            <kbd>⌘ K</kbd>
+          </button>
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="主题：自动" title="主题：自动">
+            {{ icon('sun-moon', 'theme-toggle__auto') }}
+            {{ icon('sun', 'theme-toggle__light') }}
+            {{ icon('moon', 'theme-toggle__dark') }}
+          </button>
+          <button class="icon-button menu-toggle" type="button" data-menu-open aria-label="打开导航" title="打开导航">
+            {{ icon('menu') }}
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="mobile-menu" data-mobile-menu inert>
+      <button class="mobile-menu__backdrop" type="button" data-menu-close tabindex="-1" aria-label="关闭导航"></button>
+      <nav class="mobile-menu__panel" aria-label="移动端导航">
+        <div class="mobile-menu__header">
+          <span>导航</span>
+          <button class="icon-button" type="button" data-menu-close aria-label="关闭导航" title="关闭导航">{{ icon('x') }}</button>
+        </div>
+        <a href="{{ '/' | url }}">首页 {{ icon('chevron-right') }}</a>
+        <a href="{{ '/guides/' | url }}">全部指南 {{ icon('chevron-right') }}</a>
+        <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">GitHub 源码 {{ icon('external-link') }}</a>
+      </nav>
+    </div>
+
+    <main id="main-content">
+      {{ content | safe }}
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <div>
+          <a class="brand brand--footer" href="{{ '/' | url }}">
+            <span class="brand__mark" aria-hidden="true"><span></span></span>
+            <span class="brand__text">{{ site.shortTitle }}</span>
+          </a>
+          <p>cat 代理部署与客户端共存配置。</p>
+        </div>
+        <div class="footer-links">
+          <a href="{{ '/guides/' | url }}">浏览指南</a>
+          <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">参与维护</a>
+        </div>
+      </div>
+    </footer>
+
+    <dialog class="search-dialog" data-search-dialog>
+      <div class="search-dialog__surface">
+        <div class="search-dialog__bar">
+          {{ icon('search') }}
+          <label class="sr-only" for="site-search">搜索配置指南</label>
+          <input id="site-search" type="search" autocomplete="off" placeholder="搜索软件、平台或配置内容" data-search-input>
+          <button class="icon-button" type="button" data-search-close aria-label="关闭搜索" title="关闭搜索">{{ icon('x') }}</button>
+        </div>
+        <div class="search-dialog__status" data-search-status>输入关键词开始搜索</div>
+        <div class="search-results" data-search-results></div>
+      </div>
+    </dialog>
+
+    <dialog class="image-dialog" data-image-dialog>
+      <button class="icon-button image-dialog__close" type="button" data-image-close aria-label="关闭图片" title="关闭图片">{{ icon('x') }}</button>
+      <img data-image-preview alt="">
+    </dialog>
+
+    <script src="{{ '/assets/js/main.js' | url }}" defer></script>
+  </body>
+</html>

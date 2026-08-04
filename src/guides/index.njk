@@ -1,0 +1,77 @@
+---
+pagination:
+  data: guideViews
+  size: 1
+  alias: guideView
+layout: layouts/library.njk
+bodyClass: library-page
+permalink: "{{ guideView.url }}"
+eleventyComputed:
+  title: "{{ guideView.title }}"
+  description: "{{ guideView.description }}"
+---
+{% from "components/icon.njk" import icon with context %}
+{% macro guideRow(item) %}
+  <a class="library-row" href="{{ item.url | url }}">
+    <span class="library-row__index">{% if item.displayIndex < 10 %}0{% endif %}{{ item.displayIndex }}</span>
+    <span class="library-row__main">
+      <span class="library-row__title">{{ item.title }}</span>
+      <span class="library-row__summary">{{ item.summary }}</span>
+    </span>
+    <span class="library-row__platform">{{ item.platform }}</span>
+    {{ icon('chevron-right') }}
+  </a>
+{% endmacro %}
+
+<section class="library-hero section-wrap">
+  <nav class="breadcrumb" aria-label="面包屑"><a href="{{ '/' | url }}">首页</a><span>/</span><span>指南</span></nav>
+  <p class="eyebrow">指南库</p>
+  <h1>{{ guideView.heading }}</h1>
+  <p>{{ guideView.description }}</p>
+
+  <div class="library-toolbar">
+    <nav class="segmented-control" aria-label="指南分类页面">
+      {% for view in guideViews %}
+        <a href="{{ view.url | url }}"{% if view.key == guideView.key %} class="is-active" aria-current="page"{% endif %}>{{ view.label }}</a>
+      {% endfor %}
+    </nav>
+    <button class="button button--secondary" type="button" data-search-open>{{ icon('search') }} 搜索正文</button>
+  </div>
+</section>
+
+<section class="library-content section-wrap">
+  {% if guideView.key == 'all' %}
+    <h2 class="library-section-title">cat 内部署</h2>
+    {% for item in guides %}
+      {% if not item.hidden and (item.id == 'peppapig-deploy' or item.id == 'clash-deploy') %}{{ guideRow(item) }}{% endif %}
+    {% endfor %}
+
+    <h2 class="library-section-title">代理共存</h2>
+    {% for item in guides %}
+      {% if not item.hidden and item.id != 'peppapig-deploy' and item.id != 'clash-deploy' %}{{ guideRow(item) }}{% endif %}
+    {% endfor %}
+
+    <h2 class="library-section-title">参考资源</h2>
+    {% for resource in resources %}
+      <a class="library-row" href="{{ resource.url | url }}">
+        <span class="library-row__index">MP4</span>
+        <span class="library-row__main">
+          <span class="library-row__title">{{ resource.title }}</span>
+          <span class="library-row__summary">{{ resource.summary }}</span>
+        </span>
+        <span class="library-row__platform">{{ resource.platform }}</span>
+        {{ icon('download') }}
+      </a>
+    {% endfor %}
+  {% elif guideView.key == 'cat' %}
+    <h2 class="library-section-title">cat 内部署</h2>
+    {% for item in guides %}
+      {% if not item.hidden and (item.id == 'peppapig-deploy' or item.id == 'clash-deploy') %}{{ guideRow(item) }}{% endif %}
+    {% endfor %}
+  {% else %}
+    <h2 class="library-section-title">{{ guideView.label }}代理共存</h2>
+    {% for item in guides %}
+      {% if not item.hidden and item.platform == guideView.platform %}{{ guideRow(item) }}{% endif %}
+    {% endfor %}
+  {% endif %}
+</section>

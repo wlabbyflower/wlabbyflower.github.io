@@ -1,0 +1,13 @@
+---
+pagination:
+  data: guides
+  size: 1
+  alias: guide
+layout: layouts/guide.njk
+bodyClass: guide-page
+permalink: "{{ guide.url }}"
+eleventyComputed:
+  title: "{{ guide.title }}"
+  description: "{{ guide.summary }}"
+---
+{{ guide | renderGuideMarkdown | safe }}

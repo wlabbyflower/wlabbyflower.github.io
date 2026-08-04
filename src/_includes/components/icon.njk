@@ -1,0 +1,10 @@
+{% macro icon(name, className="") %}
+  <img
+    class="icon {{ className }}"
+    src="{{ ('/assets/icons/' ~ name ~ '.svg') | url }}"
+    alt=""
+    width="18"
+    height="18"
+    aria-hidden="true"
+  >
+{% endmacro %}

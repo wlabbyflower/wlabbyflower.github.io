@@ -1,0 +1,17 @@
+{
+  "name": "peppapig-configuration-guide-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "小猪佩奇配置指南的 Eleventy 静态文档站",
+  "scripts": {
+    "dev": "eleventy --serve",
+    "build": "eleventy",
+    "clean": "rm -rf _site"
+  },
+  "dependencies": {
+    "@11ty/eleventy": "3.1.6",
+    "lucide-static": "1.28.0",
+    "markdown-it-anchor": "9.2.1",
+    "suncalc": "^1.9.0"
+  }
+}
