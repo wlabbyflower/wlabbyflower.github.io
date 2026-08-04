@@ -1147,7 +1147,7 @@ summary:focus-visible {
   margin-bottom: 0;
 }
 
-.article-body img {
+.article-body img:not(.code-copy__icon) {
   width: auto;
   max-width: 100%;
   max-height: 760px;
@@ -1158,7 +1158,7 @@ summary:focus-visible {
   cursor: zoom-in;
 }
 
-.article-body img:focus-visible {
+.article-body img:not(.code-copy__icon):focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 4px;
 }
