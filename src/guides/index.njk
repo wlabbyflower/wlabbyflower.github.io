@@ -68,6 +68,26 @@ eleventyComputed:
     {% for item in guides %}
       {% if not item.hidden and (item.id == 'peppapig-deploy' or item.id == 'clash-deploy') %}{{ guideRow(item) }}{% endif %}
     {% endfor %}
+  {% elif guideView.key == 'cross-platform' %}
+    <h2 class="library-section-title">
+      跨平台代理共存
+      <small class="library-section-subtitle">（macOS、Windows、安卓、Linux）</small>
+    </h2>
+    {% for item in guides %}
+      {% if not item.hidden and item.platform == '跨平台' %}{{ guideRow(item) }}{% endif %}
+    {% endfor %}
+    <h2 class="library-section-title library-section-title--sub">参考资源</h2>
+    {% for resource in resources %}
+      <a class="library-row" href="{{ resource.url | url }}">
+        <span class="library-row__index">MP4</span>
+        <span class="library-row__main">
+          <span class="library-row__title">{{ resource.title }}</span>
+          <span class="library-row__summary">{{ resource.summary }}</span>
+        </span>
+        <span class="library-row__platform">{{ resource.platform }}</span>
+        {{ icon('download') }}
+      </a>
+    {% endfor %}
   {% else %}
     <h2 class="library-section-title">{{ guideView.label }}代理共存</h2>
     {% for item in guides %}
