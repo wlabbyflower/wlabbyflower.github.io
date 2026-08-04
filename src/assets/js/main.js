@@ -310,7 +310,7 @@
 
   const imageDialog = document.querySelector("[data-image-dialog]");
   const imagePreview = document.querySelector("[data-image-preview]");
-  document.querySelectorAll(".article-body img").forEach((image) => {
+  document.querySelectorAll(".article-body img:not(.code-copy__icon)").forEach((image) => {
     image.tabIndex = 0;
     image.setAttribute("role", "button");
     image.setAttribute("aria-label", image.alt ? `放大图片：${image.alt}` : "放大图片");
