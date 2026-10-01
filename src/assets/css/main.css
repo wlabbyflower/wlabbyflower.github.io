@@ -285,6 +285,7 @@ img {
 }
 
 .header-button,
+.language-toggle,
 .icon-button {
   color: var(--ink);
   background: var(--surface);
@@ -294,11 +295,13 @@ img {
 }
 
 .header-button:hover,
+.language-toggle:hover,
 .icon-button:hover {
   background: var(--surface-solid);
 }
 
 .header-button:focus-visible,
+.language-toggle:focus-visible,
 .icon-button:focus-visible,
 .button:focus-visible,
 a:focus-visible,
@@ -316,6 +319,18 @@ summary:focus-visible {
   align-items: center;
   gap: 7px;
   font-size: 13px;
+}
+
+.language-toggle {
+  min-width: 42px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .header-button kbd {
@@ -1876,6 +1891,12 @@ summary:focus-visible {
     padding: 0;
     justify-content: center;
     border-radius: 50%;
+  }
+
+  .language-toggle {
+    min-width: 36px;
+    padding: 0 8px;
+    font-size: 11px;
   }
 
   .hero {

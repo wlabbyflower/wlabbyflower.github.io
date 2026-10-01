@@ -1,0 +1,132 @@
+name: Netlify PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: netlify-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v4
+
+      - name: Checkout guide source
+        uses: actions/checkout@v4
+        with:
+          repository: wlabbyflower/peppapigconfigurationguide
+          ref: main
+          path: _content/peppapigconfigurationguide
+          lfs: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Configure build environment
+        run: |
+          echo "PATH_PREFIX=/" >> "$GITHUB_ENV"
+          echo "GUIDE_SOURCE_DIR=$GITHUB_WORKSPACE/_content/peppapigconfigurationguide" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore generated translations
+        uses: actions/cache@v4
+        with:
+          path: src/_generated/i18n
+          key: i18n-${{ vars.OPENAI_BASE_URL }}-${{ vars.OPENAI_TRANSLATION_MODEL }}-${{ vars.OPENAI_TRANSLATION_API_STYLE }}-${{ hashFiles('_content/peppapigconfigurationguide/docs/**/*.md', 'scripts/translate-guides.mjs') }}
+          restore-keys: |
+            i18n-
+
+      - name: Translate guide content
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || secrets.OPENAI_BASE_URL }}
+          OPENAI_TRANSLATION_MODEL: ${{ vars.OPENAI_TRANSLATION_MODEL || secrets.OPENAI_TRANSLATION_MODEL || 'gpt-4o-mini' }}
+          OPENAI_TRANSLATION_API_STYLE: ${{ vars.OPENAI_TRANSLATION_API_STYLE || secrets.OPENAI_TRANSLATION_API_STYLE || 'chat' }}
+        run: npm run translate:i18n
+
+      - name: Build preview
+        run: npm run build
+
+      - name: Check Netlify secrets
+        id: netlify-secrets
+        run: |
+          if [[ -n "$NETLIFY_AUTH_TOKEN" && -n "$NETLIFY_SITE_ID" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Netlify deploy because NETLIFY_AUTH_TOKEN or NETLIFY_SITE_ID is not configured."
+          fi
+
+      - name: Deploy preview to Netlify
+        if: steps.netlify-secrets.outputs.configured == 'true'
+        id: netlify-deploy
+        run: |
+          deploy_output="$(npx --yes netlify-cli@latest deploy \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --site "$NETLIFY_SITE_ID" \
+            --dir "_site" \
+            --alias "pr-${{ github.event.pull_request.number }}" \
+            --message "PR #${{ github.event.pull_request.number }} preview: ${{ github.sha }}")"
+          echo "$deploy_output"
+          preview_url="$(printf '%s\n' "$deploy_output" | awk '/Website Draft URL:|Draft URL:|Website URL:|Unique Deploy URL:|Deploy URL:/ { print $NF }' | tail -1)"
+          if [[ -z "$preview_url" ]]; then
+            echo "::error::Could not find Netlify preview URL in deploy output."
+            exit 1
+          fi
+          echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL
+        if: steps.netlify-secrets.outputs.configured == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- netlify-pr-preview -->';
+            const body = [
+              marker,
+              'Netlify preview: ${{ steps.netlify-deploy.outputs.preview_url }}',
+              '',
+              'Commit: `${{ github.sha }}`',
+            ].join('\n');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) =>
+              comment.user.type === 'Bot' && comment.body.includes(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }

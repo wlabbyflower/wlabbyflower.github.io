@@ -44,7 +44,9 @@ jobs:
         shell: bash
         run: |
           repository_name="${GITHUB_REPOSITORY#*/}"
-          if [[ "$repository_name" == *.github.io ]]; then
+          owner_name="${GITHUB_REPOSITORY_OWNER,,}"
+          repository_name_lower="${repository_name,,}"
+          if [[ "$repository_name_lower" == "$owner_name.github.io" ]]; then
             echo "PATH_PREFIX=/" >> "$GITHUB_ENV"
           else
             echo "PATH_PREFIX=/$repository_name/" >> "$GITHUB_ENV"
@@ -54,13 +56,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore generated translations
+        uses: actions/cache@v4
+        with:
+          path: src/_generated/i18n
+          key: i18n-${{ vars.OPENAI_BASE_URL }}-${{ vars.OPENAI_TRANSLATION_MODEL }}-${{ vars.OPENAI_TRANSLATION_API_STYLE }}-${{ hashFiles('_content/peppapigconfigurationguide/docs/**/*.md', 'scripts/translate-guides.mjs') }}
+          restore-keys: |
+            i18n-
+
+      - name: Translate guide content
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || secrets.OPENAI_BASE_URL }}
+          OPENAI_TRANSLATION_MODEL: ${{ vars.OPENAI_TRANSLATION_MODEL || secrets.OPENAI_TRANSLATION_MODEL || 'gpt-4o-mini' }}
+          OPENAI_TRANSLATION_API_STYLE: ${{ vars.OPENAI_TRANSLATION_API_STYLE || secrets.OPENAI_TRANSLATION_API_STYLE || 'chat' }}
+          REQUIRE_I18N_TRANSLATION: "true"
+        run: npm run translate:i18n
+
       - name: Build
         run: npm run build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

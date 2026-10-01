@@ -1,11 +1,12 @@
 ---
 pagination:
-  data: guides
+  data: localizedGuides
   size: 1
   alias: guide
 layout: layouts/guide.njk
 bodyClass: guide-page
 permalink: "{{ guide.url }}"
+locale: "{{ guide.locale }}"
 eleventyComputed:
   title: "{{ guide.title }}"
   description: "{{ guide.summary }}"

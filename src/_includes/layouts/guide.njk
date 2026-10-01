@@ -3,14 +3,17 @@ layout: layouts/base.njk
 bodyClass: guide-page
 ---
 {% from "components/icon.njk" import icon with context %}
+{% set activeLocale = guide.locale or locale or 'zh' %}
+{% set t = i18n.translations[activeLocale] %}
+{% set visibleGuides = localizedGuides | where('locale', activeLocale) %}
 <div class="reading-progress" data-reading-progress></div>
 
 <div class="guide-shell">
-  <aside class="guide-sidebar" aria-label="指南导航">
-    <a class="guide-sidebar__back" href="{{ '/guides/' | url }}">{{ icon('chevron-left') }} 全部指南</a>
+  <aside class="guide-sidebar" aria-label="{{ t.guideNavigation }}">
+    <a class="guide-sidebar__back" href="{{ '/guides/' | localizePath(activeLocale) | url }}">{{ icon('chevron-left') }} {{ t.allGuides }}</a>
     {% set currentSection = '' %}
-    <nav aria-label="全部指南">
-      {% for item in guides %}
+    <nav aria-label="{{ t.allGuides }}">
+      {% for item in visibleGuides %}
         {% if not item.hidden %}
           {% if item.sectionLabel != currentSection %}
             {% set currentSection = item.sectionLabel %}
@@ -24,8 +27,8 @@ bodyClass: guide-page
 
   <article class="guide-article" data-guide-article>
     <header class="article-header">
-      <nav class="breadcrumb" aria-label="面包屑">
-        <a href="{{ '/guides/' | url }}">指南</a>
+      <nav class="breadcrumb" aria-label="{{ t.breadcrumbGuides }}">
+        <a href="{{ '/guides/' | localizePath(activeLocale) | url }}">{{ t.breadcrumbGuides }}</a>
         <span>/</span>
         <span>{{ guide.sectionLabel }}</span>
       </nav>
@@ -37,7 +40,7 @@ bodyClass: guide-page
       <p>{{ guide.summary }}</p>
 
       {% if guide.resources %}
-        <nav class="article-resources" aria-label="相关下载">
+        <nav class="article-resources" aria-label="{{ t.relatedDownloads }}">
           {% for resource in guide.resources %}
             <a href="{{ resource.url | url }}" download>
               {{ icon('download') }}
@@ -50,8 +53,8 @@ bodyClass: guide-page
     </header>
 
     <details class="mobile-toc">
-      <summary>{{ icon('book-open') }} 本页目录</summary>
-      <nav data-toc-mobile aria-label="移动端章节目录"></nav>
+      <summary>{{ icon('book-open') }} {{ t.toc }}</summary>
+      <nav data-toc-mobile aria-label="{{ t.mobileChapterNavigation }}"></nav>
     </details>
 
     <div class="article-body" data-article-body>
@@ -66,20 +69,20 @@ bodyClass: guide-page
       {% if guide.previous %}
         <a href="{{ guide.previous.url | url }}" class="article-pagination__previous">
           {{ icon('chevron-left') }}
-          <span><small>上一篇</small>{{ guide.previous.title }}</span>
+          <span><small>{{ t.previous }}</small>{{ guide.previous.title }}</span>
         </a>
       {% else %}<span></span>{% endif %}
       {% if guide.next %}
         <a href="{{ guide.next.url | url }}" class="article-pagination__next">
-          <span><small>下一篇</small>{{ guide.next.title }}</span>
+          <span><small>{{ t.next }}</small>{{ guide.next.title }}</span>
           {{ icon('chevron-right') }}
         </a>
       {% endif %}
     </nav>
   </article>
 
-  <aside class="guide-toc" aria-label="本页目录">
-    <p>本页目录</p>
-    <nav data-toc aria-label="章节目录"></nav>
+  <aside class="guide-toc" aria-label="{{ t.toc }}">
+    <p>{{ t.toc }}</p>
+    <nav data-toc aria-label="{{ t.tocAria }}"></nav>
   </aside>
 </div>

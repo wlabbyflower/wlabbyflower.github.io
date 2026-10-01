@@ -1,13 +1,18 @@
 {% from "components/icon.njk" import icon with context %}
+{% set activeLocale = guide.locale or guideView.locale or locale or 'zh' %}
+{% set currentLocale = locales | find('key', activeLocale) %}
+{% set targetLocaleKey = 'en' if activeLocale == 'zh' else 'zh' %}
+{% set targetLocale = locales | find('key', targetLocaleKey) %}
+{% set t = i18n.translations[activeLocale] %}
 <!DOCTYPE html>
-<html lang="{{ site.language }}">
+<html lang="{{ currentLocale.code }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f5f7">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="{{ description or site.description }}">
-    <title>{% if title and title != site.title %}{{ title }} · {% endif %}{{ site.title }}</title>
+    <meta name="description" content="{{ description or t.siteDescription }}">
+    <title>{% if title and title != t.siteTitle %}{{ title }} · {% endif %}{{ t.siteTitle }}</title>
     <script src="{{ '/assets/vendor/suncalc.js' | url }}"></script>
     <script>
       (function () {
@@ -108,35 +113,40 @@
   <body
     class="{{ bodyClass or '' }}"
     data-base-url="{{ '/' | url }}"
-    data-search-url="{{ '/search-index.json' | url }}"
+    data-search-url="{{ '/search-index.json' | localizePath(activeLocale) | url }}"
+    data-locale="{{ activeLocale }}"
+    data-i18n="{{ t | json | escape }}"
   >
-    <a class="skip-link" href="#main-content">跳到正文</a>
+    <a class="skip-link" href="#main-content">{{ t.skipToContent }}</a>
 
     <header class="site-header" data-site-header>
       <div class="site-header__inner">
-        <a class="brand" href="{{ '/' | url }}" aria-label="{{ site.title }}首页">
+        <a class="brand" href="{{ '/' | localizePath(activeLocale) | url }}" aria-label="{{ t.siteTitle }} {{ t.navHome }}">
           <img class="brand__mark" src="{{ '/assets/images/icon.jpg' | url }}" alt="" width="28" height="28">
-          <span class="brand__text">{{ site.shortTitle }}</span>
+          <span class="brand__text">{{ t.shortTitle }}</span>
         </a>
 
-        <nav class="desktop-nav" aria-label="主导航">
-          <a href="{{ '/' | url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>首页</a>
-          <a href="{{ '/guides/' | url }}"{% if page.url and page.url.startsWith('/guides/') %} aria-current="page"{% endif %}>指南</a>
-          <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">源码 {{ icon('external-link', 'icon--small') }}</a>
+        <nav class="desktop-nav" aria-label="{{ t.navMenu }}">
+          <a href="{{ '/' | localizePath(activeLocale) | url }}"{% if page.url == ('/' | localizePath(activeLocale)) %} aria-current="page"{% endif %}>{{ t.navHome }}</a>
+          <a href="{{ '/guides/' | localizePath(activeLocale) | url }}"{% if page.url and page.url.startsWith('/guides/' | localizePath(activeLocale)) %} aria-current="page"{% endif %}>{{ t.navGuides }}</a>
+          <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">{{ t.navSource }} {{ icon('external-link', 'icon--small') }}</a>
         </nav>
 
         <div class="header-actions">
           <button class="header-button header-button--search" type="button" data-search-open>
             {{ icon('search') }}
-            <span>搜索</span>
+            <span>{{ t.navSearch }}</span>
             <kbd>⌘ K</kbd>
           </button>
-          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="主题：自动" title="主题：自动">
+          <a class="language-toggle" href="{{ page.url | switchLocalePath(targetLocaleKey) | url }}" hreflang="{{ targetLocale.code }}" aria-label="{{ t.languageSwitch }}">
+            {{ t.languageSwitch }}
+          </a>
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="{{ t.themeAuto }}" title="{{ t.themeAuto }}">
             {{ icon('sun-moon', 'theme-toggle__auto') }}
             {{ icon('sun', 'theme-toggle__light') }}
             {{ icon('moon', 'theme-toggle__dark') }}
           </button>
-          <button class="icon-button menu-toggle" type="button" data-menu-open aria-label="打开导航" title="打开导航">
+          <button class="icon-button menu-toggle" type="button" data-menu-open aria-label="{{ t.openMenu }}" title="{{ t.openMenu }}">
             {{ icon('menu') }}
           </button>
         </div>
@@ -144,15 +154,16 @@
     </header>
 
     <div class="mobile-menu" data-mobile-menu inert>
-      <button class="mobile-menu__backdrop" type="button" data-menu-close tabindex="-1" aria-label="关闭导航"></button>
-      <nav class="mobile-menu__panel" aria-label="移动端导航">
+      <button class="mobile-menu__backdrop" type="button" data-menu-close tabindex="-1" aria-label="{{ t.closeMenu }}"></button>
+      <nav class="mobile-menu__panel" aria-label="{{ t.mobileChapterNavigation }}">
         <div class="mobile-menu__header">
-          <span>导航</span>
-          <button class="icon-button" type="button" data-menu-close aria-label="关闭导航" title="关闭导航">{{ icon('x') }}</button>
+          <span>{{ t.navMenu }}</span>
+          <button class="icon-button" type="button" data-menu-close aria-label="{{ t.closeMenu }}" title="{{ t.closeMenu }}">{{ icon('x') }}</button>
         </div>
-        <a href="{{ '/' | url }}">首页 {{ icon('chevron-right') }}</a>
-        <a href="{{ '/guides/' | url }}">全部指南 {{ icon('chevron-right') }}</a>
-        <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">GitHub 源码 {{ icon('external-link') }}</a>
+        <a href="{{ '/' | localizePath(activeLocale) | url }}">{{ t.navHome }} {{ icon('chevron-right') }}</a>
+        <a href="{{ '/guides/' | localizePath(activeLocale) | url }}">{{ t.navAllGuides }} {{ icon('chevron-right') }}</a>
+        <a href="{{ page.url | switchLocalePath(targetLocaleKey) | url }}" hreflang="{{ targetLocale.code }}">{{ t.languageSwitch }} {{ icon('chevron-right') }}</a>
+        <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">{{ t.navGithubSource }} {{ icon('external-link') }}</a>
       </nav>
     </div>
 
@@ -163,15 +174,15 @@
     <footer class="site-footer">
       <div class="site-footer__inner">
         <div>
-          <a class="brand brand--footer" href="{{ '/' | url }}">
+          <a class="brand brand--footer" href="{{ '/' | localizePath(activeLocale) | url }}">
             <img class="brand__mark" src="{{ '/assets/images/icon.jpg' | url }}" alt="" width="28" height="28">
-            <span class="brand__text">{{ site.shortTitle }}</span>
+            <span class="brand__text">{{ t.shortTitle }}</span>
           </a>
-          <p>cat 代理部署与客户端共存配置。</p>
+          <p>{{ t.footerDescription }}</p>
         </div>
         <div class="footer-links">
-          <a href="{{ '/guides/' | url }}">浏览指南</a>
-          <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">参与维护</a>
+          <a href="{{ '/guides/' | localizePath(activeLocale) | url }}">{{ t.footerBrowse }}</a>
+          <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">{{ t.footerContribute }}</a>
         </div>
       </div>
     </footer>
@@ -180,17 +191,17 @@
       <div class="search-dialog__surface">
         <div class="search-dialog__bar">
           {{ icon('search') }}
-          <label class="sr-only" for="site-search">搜索配置指南</label>
-          <input id="site-search" type="search" autocomplete="off" placeholder="搜索软件、平台或配置内容" data-search-input>
-          <button class="icon-button" type="button" data-search-close aria-label="关闭搜索" title="关闭搜索">{{ icon('x') }}</button>
+          <label class="sr-only" for="site-search">{{ t.searchLabel }}</label>
+          <input id="site-search" type="search" autocomplete="off" placeholder="{{ t.searchPlaceholder }}" data-search-input>
+          <button class="icon-button" type="button" data-search-close aria-label="{{ t.searchClose }}" title="{{ t.searchClose }}">{{ icon('x') }}</button>
         </div>
-        <div class="search-dialog__status" data-search-status>输入关键词开始搜索</div>
+        <div class="search-dialog__status" data-search-status>{{ t.searchStart }}</div>
         <div class="search-results" data-search-results></div>
       </div>
     </dialog>
 
     <dialog class="image-dialog" data-image-dialog>
-      <button class="icon-button image-dialog__close" type="button" data-image-close aria-label="关闭图片" title="关闭图片">{{ icon('x') }}</button>
+      <button class="icon-button image-dialog__close" type="button" data-image-close aria-label="{{ t.closeImage }}" title="{{ t.closeImage }}">{{ icon('x') }}</button>
       <img data-image-preview alt="">
     </dialog>
 

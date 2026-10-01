@@ -4,7 +4,22 @@
   const root = document.documentElement;
   const body = document.body;
   const baseUrl = body.dataset.baseUrl || "/";
+  const locale = body.dataset.locale || "zh";
+  let i18n = {};
+  try {
+    i18n = JSON.parse(body.dataset.i18n || "{}");
+  } catch (error) {
+    i18n = {};
+  }
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  function t(key, variables = {}) {
+    const value = i18n[key] || key;
+    return Object.entries(variables).reduce(
+      (result, [name, replacement]) => result.replaceAll(`{${name}}`, String(replacement)),
+      value,
+    );
+  }
 
   function iconUrl(name) {
     return `${baseUrl.replace(/\/$/, "")}/assets/icons/${name}.svg`;
@@ -70,9 +85,9 @@
   if (themeToggle) {
     const themeModes = ["auto", "light", "dark"];
     const themeLabels = {
-      auto: "主题：自动（北京时间日出日落）",
-      light: "主题：浅色",
-      dark: "主题：深色",
+      auto: t("themeAuto"),
+      light: t("themeLight"),
+      dark: t("themeDark"),
     };
 
     function updateThemeToggle() {
@@ -121,7 +136,7 @@
   }
 
   function normalize(value) {
-    return String(value).toLocaleLowerCase("zh-CN");
+    return String(value).toLocaleLowerCase(locale === "en" ? "en" : "zh-CN");
   }
 
   function scoreItem(item, terms) {
@@ -147,7 +162,7 @@
     const terms = normalize(query).split(/\s+/).filter(Boolean);
 
     if (!terms.length) {
-      searchStatus.textContent = "输入关键词开始搜索";
+      searchStatus.textContent = t("searchStart");
       searchResults.innerHTML = "";
       return;
     }
@@ -158,7 +173,7 @@
       .sort((a, b) => b.score - a.score)
       .slice(0, 8);
 
-    searchStatus.textContent = matches.length ? `找到 ${matches.length} 个相关结果` : "没有找到相关内容";
+    searchStatus.textContent = matches.length ? t("searchResults", { count: matches.length }) : t("searchNoResults");
     searchResults.innerHTML = matches
       .map(({ item }) => `
         <a class="search-result" href="${escapeHtml(siteUrl(item.url))}">
@@ -179,7 +194,7 @@
     try {
       await loadSearch();
     } catch (error) {
-      if (searchStatus) searchStatus.textContent = "搜索索引加载失败，请刷新页面重试。";
+      if (searchStatus) searchStatus.textContent = t("searchError");
     }
   }
 
@@ -197,7 +212,7 @@
     try {
       renderSearch(await loadSearch(), event.target.value);
     } catch (error) {
-      if (searchStatus) searchStatus.textContent = "搜索索引加载失败，请刷新页面重试。";
+      if (searchStatus) searchStatus.textContent = t("searchError");
     }
   });
 
@@ -225,8 +240,8 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "code-copy";
-      button.title = "复制代码";
-      button.setAttribute("aria-label", "复制代码");
+      button.title = t("copyCode");
+      button.setAttribute("aria-label", t("copyCode"));
 
       const copyIcon = document.createElement("img");
       copyIcon.className = "code-copy__icon";
@@ -252,8 +267,8 @@
         if (state === "copied" || state === "copy-error") {
           resetCopyState = window.setTimeout(() => {
             button.classList.remove("is-copied", "is-copy-error");
-            button.title = "复制代码";
-            button.setAttribute("aria-label", "复制代码");
+            button.title = t("copyCode");
+            button.setAttribute("aria-label", t("copyCode"));
             copyIcon.src = iconUrl("copy");
             copyStatus.textContent = "";
           }, 1800);
@@ -264,12 +279,12 @@
         if (button.classList.contains("is-copying")) return;
 
         const code = (pre.querySelector("code")?.textContent || pre.textContent || "").replace(/\n$/, "");
-        setCopyState("copying", "正在复制");
+        setCopyState("copying", t("copying"));
         button.setAttribute("aria-busy", "true");
         const copied = await copyText(code);
         button.removeAttribute("aria-busy");
         copyIcon.src = iconUrl(copied ? "check" : "copy");
-        setCopyState(copied ? "copied" : "copy-error", copied ? "已复制" : "复制失败");
+        setCopyState(copied ? "copied" : "copy-error", copied ? t("copied") : t("copyFailed"));
       });
       wrapper.appendChild(button);
     });
@@ -280,7 +295,7 @@
       .map((heading) => `<a class="toc-link toc-link--${heading.tagName.toLowerCase()}" href="#${escapeHtml(heading.id)}">${escapeHtml(heading.textContent)}</a>`)
       .join("");
     tocTargets.forEach((target) => {
-      target.innerHTML = tocMarkup || "<span class=\"toc-empty\">本页没有分节</span>";
+      target.innerHTML = tocMarkup || `<span class="toc-empty">${escapeHtml(t("tocEmpty"))}</span>`;
     });
 
     if ("IntersectionObserver" in window && headings.length) {
@@ -313,11 +328,11 @@
   document.querySelectorAll(".article-body img:not(.code-copy__icon)").forEach((image) => {
     image.tabIndex = 0;
     image.setAttribute("role", "button");
-    image.setAttribute("aria-label", image.alt ? `放大图片：${image.alt}` : "放大图片");
+    image.setAttribute("aria-label", image.alt ? t("enlargeImage", { alt: image.alt }) : t("enlargeImageEmpty"));
     const openImage = () => {
       if (!imageDialog || !imagePreview) return;
       imagePreview.src = image.currentSrc || image.src;
-      imagePreview.alt = image.alt || "教程图片预览";
+      imagePreview.alt = image.alt || t("imagePreview");
       imageDialog.showModal();
     };
     image.addEventListener("click", openImage);
