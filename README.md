@@ -66,6 +66,8 @@ npm run translate:i18n
 
 兼容服务通常必须设置 `OPENAI_TRANSLATION_MODEL`，因为模型名由服务商决定。也可用 `TRANSLATION_API_KEY` / `TRANSLATION_BASE_URL`，或用 `OPENAI_MODEL` 作为模型名。若服务支持 Responses API，可设置 `OPENAI_TRANSLATION_API_STYLE=responses`。译文会写入 `src/_generated/i18n/en/guides/`，该目录不提交到仓库。CI 会缓存这个目录；源 Markdown、模型、base URL 或翻译脚本变化时才重新翻译。
 
+CI 中 `REQUIRE_I18N_TRANSLATION=true`，因此没有配置翻译 key 时会直接失败，避免发布英文 UI 但正文仍为中文的页面。需要在仓库设置中添加 secret `OPENAI_API_KEY`，并按兼容服务需要添加 variables：`OPENAI_BASE_URL`、`OPENAI_TRANSLATION_MODEL`、`OPENAI_TRANSLATION_API_STYLE`。
+
 ## GitHub Pages
 
 `.github/workflows/deploy.yml` 会在 `main` 分支推送后自动：

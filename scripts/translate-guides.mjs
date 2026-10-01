@@ -17,9 +17,15 @@ const baseUrl = (
 ).replace(/\/$/, "");
 const apiStyle = process.env.OPENAI_TRANSLATION_API_STYLE || "chat";
 const maxChunkChars = Number(process.env.I18N_TRANSLATION_CHUNK_CHARS || 10000);
+const requireTranslation = process.env.REQUIRE_I18N_TRANSLATION === "true";
 
 if (!apiKey) {
-  console.log("OPENAI_API_KEY or TRANSLATION_API_KEY is not set; skipping guide translation.");
+  const message = "OPENAI_API_KEY or TRANSLATION_API_KEY is not set.";
+  if (requireTranslation) {
+    console.error(`${message} Refusing to build untranslated I18N content.`);
+    process.exit(1);
+  }
+  console.log(`${message} Skipping guide translation.`);
   process.exit(0);
 }
 
