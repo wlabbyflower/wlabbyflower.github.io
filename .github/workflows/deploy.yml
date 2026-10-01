@@ -67,9 +67,9 @@ jobs:
       - name: Translate guide content
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
-          OPENAI_TRANSLATION_MODEL: ${{ vars.OPENAI_TRANSLATION_MODEL || 'gpt-4o-mini' }}
-          OPENAI_TRANSLATION_API_STYLE: ${{ vars.OPENAI_TRANSLATION_API_STYLE || 'chat' }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || secrets.OPENAI_BASE_URL }}
+          OPENAI_TRANSLATION_MODEL: ${{ vars.OPENAI_TRANSLATION_MODEL || secrets.OPENAI_TRANSLATION_MODEL || 'gpt-4o-mini' }}
+          OPENAI_TRANSLATION_API_STYLE: ${{ vars.OPENAI_TRANSLATION_API_STYLE || secrets.OPENAI_TRANSLATION_API_STYLE || 'chat' }}
           REQUIRE_I18N_TRANSLATION: "true"
         run: npm run translate:i18n
 

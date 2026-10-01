@@ -29,6 +29,8 @@ if (!apiKey) {
   process.exit(0);
 }
 
+console.log(`i18n: using ${apiStyle} API at ${baseUrl} with model ${model}.`);
+
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
