@@ -18,6 +18,7 @@ const baseUrl = (
 const apiStyle = process.env.OPENAI_TRANSLATION_API_STYLE || "chat";
 const maxChunkChars = Number(process.env.I18N_TRANSLATION_CHUNK_CHARS || 10000);
 const requireTranslation = process.env.REQUIRE_I18N_TRANSLATION === "true";
+const translatorVersion = 2;
 
 if (!apiKey) {
   const message = "OPENAI_API_KEY or TRANSLATION_API_KEY is not set.";
@@ -115,6 +116,16 @@ function protectMarkdownSyntax(markdown) {
       );
     },
   };
+}
+
+function repairMarkdownBlocks(markdown) {
+  return markdown
+    .replace(/([^\n])\n(#{1,6}\s+)/g, "$1\n\n$2")
+    .replace(/([^\n])\n(!\[[^\]\n]*\]\([^)]+\))/g, "$1\n\n$2")
+    .replace(/([^\n])\n(<img\b[^>\n]*>)/g, "$1\n\n$2")
+    .replace(/(<img\b[^>\n]*>)\n([^\n])/g, "$1\n\n$2")
+    .replace(/([^\n])\n(<\/?(?:div|section|article|figure|table|ul|ol|li|p|blockquote)\b[^>\n]*>)/g, "$1\n\n$2")
+    .replace(/(<\/?(?:div|section|article|figure|table|ul|ol|li|p|blockquote)\b[^>\n]*>)\n([^\n])/g, "$1\n\n$2");
 }
 
 function extractOutputText(response) {
@@ -230,7 +241,8 @@ async function translateGuide(guide) {
     existingMeta?.model === model &&
     existingMeta?.locale === "en" &&
     existingMeta?.baseUrl === baseUrl &&
-    existingMeta?.apiStyle === apiStyle
+    existingMeta?.apiStyle === apiStyle &&
+    existingMeta?.translatorVersion === translatorVersion
   ) {
     console.log(`i18n: ${guide.id} is up to date.`);
     return;
@@ -247,7 +259,7 @@ async function translateGuide(guide) {
       index,
       total: chunks.length,
     });
-    translatedChunks.push(protectedChunk.restore(translated));
+    translatedChunks.push(repairMarkdownBlocks(protectedChunk.restore(translated)));
   }
 
   await fs.mkdir(outputRoot, { recursive: true });
@@ -260,6 +272,7 @@ async function translateGuide(guide) {
       model,
       baseUrl,
       apiStyle,
+      translatorVersion,
       sourceHash,
       translatedAt: new Date().toISOString(),
     }, null, 2)}\n`,
