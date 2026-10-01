@@ -80,6 +80,43 @@ function splitMarkdown(markdown) {
   return chunks;
 }
 
+function protectMarkdownSyntax(markdown) {
+  const protectedValues = [];
+  let protectedMarkdown = markdown;
+
+  function protect(pattern) {
+    protectedMarkdown = protectedMarkdown.replace(pattern, (match) => {
+      const token = `I18N_KEEP_${protectedValues.length}`;
+      protectedValues.push(match);
+      return token;
+    });
+  }
+
+  protect(/```[\s\S]*?```/g);
+  protect(/<[^>\n]+>/g);
+  protect(/!\[[^\]\n]*\]\([^)]+\)/g);
+  protect(/\[[^\]\n]+\]\([^)]+\)/g);
+  protect(/https?:\/\/[^\s)]+/g);
+  protect(/`[^`\n]+`/g);
+
+  return {
+    markdown: protectedMarkdown,
+    tokens: protectedValues.map((_, index) => `I18N_KEEP_${index}`),
+    restore(translated) {
+      for (const token of this.tokens) {
+        if (!translated.includes(token)) {
+          throw new Error(`Translation output is missing protected Markdown token ${token}.`);
+        }
+      }
+
+      return protectedValues.reduce(
+        (result, value, index) => result.replaceAll(`I18N_KEEP_${index}`, value),
+        translated,
+      );
+    },
+  };
+}
+
 function extractOutputText(response) {
   if (typeof response.output_text === "string") return response.output_text;
 
@@ -91,7 +128,7 @@ function extractOutputText(response) {
 }
 
 function translationPrompt() {
-  return "You are a precise technical translator. Translate Simplified Chinese Markdown into clear English. Preserve Markdown structure, headings, tables, lists, code fences, inline code, commands, filenames, paths, URLs, image links, HTML, front matter-like syntax, placeholders, product names, and version numbers. Do not add commentary. Return only translated Markdown.";
+  return "You are a precise technical translator. Translate Simplified Chinese Markdown into clear English. Preserve Markdown structure, headings, tables, lists, commands, filenames, front matter-like syntax, product names, and version numbers. Do not change tokens like I18N_KEEP_0; copy them exactly. Do not add commentary. Return only translated Markdown.";
 }
 
 function chunkPrompt({ guide, chunk, index, total }) {
@@ -203,12 +240,14 @@ async function translateGuide(guide) {
   console.log(`i18n: translating ${guide.id} (${chunks.length} chunk${chunks.length === 1 ? "" : "s"}).`);
   const translatedChunks = [];
   for (let index = 0; index < chunks.length; index += 1) {
-    translatedChunks.push(await translateWithRetry({
+    const protectedChunk = protectMarkdownSyntax(chunks[index]);
+    const translated = await translateWithRetry({
       guide,
-      chunk: chunks[index],
+      chunk: protectedChunk.markdown,
       index,
       total: chunks.length,
-    }));
+    });
+    translatedChunks.push(protectedChunk.restore(translated));
   }
 
   await fs.mkdir(outputRoot, { recursive: true });
