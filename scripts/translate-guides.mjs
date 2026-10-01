@@ -16,9 +16,9 @@ const baseUrl = (
   "https://api.openai.com/v1"
 ).replace(/\/$/, "");
 const apiStyle = process.env.OPENAI_TRANSLATION_API_STYLE || "chat";
-const maxChunkChars = Number(process.env.I18N_TRANSLATION_CHUNK_CHARS || 10000);
+const maxChunkChars = Number(process.env.I18N_TRANSLATION_CHUNK_CHARS || 4000);
 const requireTranslation = process.env.REQUIRE_I18N_TRANSLATION === "true";
-const translatorVersion = 2;
+const translatorVersion = 3;
 
 if (!apiKey) {
   const message = "OPENAI_API_KEY or TRANSLATION_API_KEY is not set.";
@@ -78,6 +78,29 @@ function splitMarkdown(markdown) {
     chunk += block;
   }
   if (chunk.trim()) chunks.push(chunk.trimEnd());
+  return chunks;
+}
+
+function splitMarkdownAggressively(markdown) {
+  const chunks = [];
+  let current = [];
+  let inFence = false;
+
+  function flush() {
+    const value = current.join("\n").trimEnd();
+    if (value.trim()) chunks.push(value);
+    current = [];
+  }
+
+  for (const line of markdown.split("\n")) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    current.push(line);
+
+    if (!inFence && line.trim() === "") flush();
+    if (!inFence && current.join("\n").length > Math.max(1200, Math.floor(maxChunkChars / 2))) flush();
+  }
+
+  flush();
   return chunks;
 }
 
@@ -231,6 +254,20 @@ async function translateWithRetry(payload) {
   throw lastError;
 }
 
+async function translateChunk({ guide, chunk, index, total }) {
+  const protectedChunk = protectMarkdownSyntax(chunk);
+  if (!/[A-Za-z\u3400-\u9fff]/.test(protectedChunk.markdown.replace(/I18N_KEEP_\d+/g, ""))) {
+    return repairMarkdownBlocks(chunk);
+  }
+  const translated = await translateWithRetry({
+    guide,
+    chunk: protectedChunk.markdown,
+    index,
+    total,
+  });
+  return repairMarkdownBlocks(protectedChunk.restore(translated));
+}
+
 async function translateGuide(guide) {
   const sourceHash = sha256(guide.markdown);
   const paths = generatedPaths(guide);
@@ -252,14 +289,28 @@ async function translateGuide(guide) {
   console.log(`i18n: translating ${guide.id} (${chunks.length} chunk${chunks.length === 1 ? "" : "s"}).`);
   const translatedChunks = [];
   for (let index = 0; index < chunks.length; index += 1) {
-    const protectedChunk = protectMarkdownSyntax(chunks[index]);
-    const translated = await translateWithRetry({
-      guide,
-      chunk: protectedChunk.markdown,
-      index,
-      total: chunks.length,
-    });
-    translatedChunks.push(repairMarkdownBlocks(protectedChunk.restore(translated)));
+    try {
+      translatedChunks.push(await translateChunk({
+        guide,
+        chunk: chunks[index],
+        index,
+        total: chunks.length,
+      }));
+    } catch (error) {
+      if (!/missing protected Markdown token/.test(error.message)) throw error;
+      const smallerChunks = splitMarkdownAggressively(chunks[index]);
+      console.log(
+        `i18n: ${guide.id} chunk ${index + 1} lost protected tokens; retrying as ${smallerChunks.length} smaller chunks.`,
+      );
+      for (let smallIndex = 0; smallIndex < smallerChunks.length; smallIndex += 1) {
+        translatedChunks.push(await translateChunk({
+          guide,
+          chunk: smallerChunks[smallIndex],
+          index: smallIndex,
+          total: smallerChunks.length,
+        }));
+      }
+    }
   }
 
   await fs.mkdir(outputRoot, { recursive: true });
@@ -284,7 +335,9 @@ for (const guide of guides) {
     await translateGuide(guide);
   } catch (error) {
     console.error(error.message);
-    console.error("For OpenAI-compatible services, set OPENAI_BASE_URL and OPENAI_TRANSLATION_MODEL to values supported by that provider.");
+    if (/^Translation failed for /.test(error.message)) {
+      console.error("For OpenAI-compatible services, set OPENAI_BASE_URL and OPENAI_TRANSLATION_MODEL to values supported by that provider.");
+    }
     process.exit(1);
   }
 }
