@@ -83,6 +83,17 @@ CI 中 `REQUIRE_I18N_TRANSLATION=true`，因此没有配置翻译 key 时会直�
 
 工作流每 6 小时检查并构建一次最新源文档，也支持 `source-updated` repository dispatch。若站点仓库命名为 `<用户名>.github.io`，会自动使用根路径；其他仓库名会自动使用项目子路径。
 
+## Netlify PR 预览
+
+`.github/workflows/netlify-preview.yml` 会在 PR 打开或更新时构建站点，并在配置了 Netlify 凭据时发布预览链接到 PR 评论。
+
+需要在仓库 Secrets 中配置：
+
+- `NETLIFY_AUTH_TOKEN`
+- `NETLIFY_SITE_ID`
+
+Netlify 文档中 `NETLIFY_SITE_ID` 对应 UI 里的 Project ID。PR 预览使用根路径构建，适合 Netlify 的独立预览域名。
+
 ## 内容维护
 
 - 教程原文：同级源仓库 `../peppapigconfigurationguide/docs/`
