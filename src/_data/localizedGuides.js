@@ -2,6 +2,7 @@ const guides = require("./guides");
 const fs = require("node:fs");
 const path = require("node:path");
 const { locales, localizeGuide } = require("./i18n");
+const manualGuideTranslations = require("./manualGuideTranslations");
 
 function withLocaleUrl(url, locale) {
   return locale === "zh" ? url : `/en${url}`;
@@ -9,6 +10,7 @@ function withLocaleUrl(url, locale) {
 
 function translatedMarkdown(guide, locale) {
   if (locale === "zh") return guide.markdown;
+  if (manualGuideTranslations[locale]?.[guide.id]) return manualGuideTranslations[locale][guide.id];
   const translationPath = path.resolve(__dirname, "..", "_generated", "i18n", locale, "guides", `${guide.id}.md`);
   if (!fs.existsSync(translationPath)) return guide.markdown;
   return fs.readFileSync(translationPath, "utf8");
