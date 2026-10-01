@@ -54,6 +54,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore generated translations
+        uses: actions/cache@v4
+        with:
+          path: src/_generated/i18n
+          key: i18n-${{ vars.OPENAI_BASE_URL }}-${{ vars.OPENAI_TRANSLATION_MODEL }}-${{ vars.OPENAI_TRANSLATION_API_STYLE }}-${{ hashFiles('_content/peppapigconfigurationguide/docs/**/*.md', 'scripts/translate-guides.mjs') }}
+          restore-keys: |
+            i18n-
+
+      - name: Translate guide content
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          OPENAI_TRANSLATION_MODEL: ${{ vars.OPENAI_TRANSLATION_MODEL || 'gpt-4o-mini' }}
+          OPENAI_TRANSLATION_API_STYLE: ${{ vars.OPENAI_TRANSLATION_API_STYLE || 'chat' }}
+        run: npm run translate:i18n
+
       - name: Build
         run: npm run build
 

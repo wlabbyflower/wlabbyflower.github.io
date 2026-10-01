@@ -1,16 +1,21 @@
 ---
 pagination:
-  data: guideViews
+  data: localizedGuideViews
   size: 1
   alias: guideView
 layout: layouts/library.njk
 bodyClass: library-page
 permalink: "{{ guideView.url }}"
+locale: "{{ guideView.locale }}"
 eleventyComputed:
   title: "{{ guideView.title }}"
   description: "{{ guideView.description }}"
 ---
 {% from "components/icon.njk" import icon with context %}
+{% set activeLocale = guideView.locale or 'zh' %}
+{% set t = i18n.translations[activeLocale] %}
+{% set visibleGuides = localizedGuides | where('locale', activeLocale) %}
+{% set visibleResources = localizedResources | where('locale', activeLocale) %}
 {% macro guideRow(item) %}
   <a class="library-row" href="{{ item.url | url }}">
     <span class="library-row__index">{% if item.displayIndex < 10 %}0{% endif %}{{ item.displayIndex }}</span>
@@ -24,35 +29,37 @@ eleventyComputed:
 {% endmacro %}
 
 <section class="library-hero section-wrap">
-  <nav class="breadcrumb" aria-label="面包屑"><a href="{{ '/' | url }}">首页</a><span>/</span><span>指南</span></nav>
-  <p class="eyebrow">指南库</p>
+  <nav class="breadcrumb" aria-label="{{ t.breadcrumbGuides }}"><a href="{{ '/' | localizePath(activeLocale) | url }}">{{ t.breadcrumbHome }}</a><span>/</span><span>{{ t.breadcrumbGuides }}</span></nav>
+  <p class="eyebrow">{{ t.libraryEyebrow }}</p>
   <h1>{{ guideView.heading }}</h1>
   <p>{{ guideView.description }}</p>
 
   <div class="library-toolbar">
-    <nav class="segmented-control" aria-label="指南分类页面">
-      {% for view in guideViews %}
+    <nav class="segmented-control" aria-label="{{ t.categoryPage }}">
+      {% for view in localizedGuideViews %}
+        {% if view.locale == activeLocale %}
         <a href="{{ view.url | url }}"{% if view.key == guideView.key %} class="is-active" aria-current="page"{% endif %}>{{ view.label }}</a>
+        {% endif %}
       {% endfor %}
     </nav>
-    <button class="button button--secondary" type="button" data-search-open>{{ icon('search') }} 搜索正文</button>
+    <button class="button button--secondary" type="button" data-search-open>{{ icon('search') }} {{ t.searchBody }}</button>
   </div>
 </section>
 
 <section class="library-content section-wrap">
   {% if guideView.key == 'all' %}
-    <h2 class="library-section-title">cat 内部署</h2>
-    {% for item in guides %}
+    <h2 class="library-section-title">{{ t.deploySection }}</h2>
+    {% for item in visibleGuides %}
       {% if not item.hidden and (item.id == 'peppapig-deploy' or item.id == 'clash-deploy') %}{{ guideRow(item) }}{% endif %}
     {% endfor %}
 
-    <h2 class="library-section-title">代理共存</h2>
-    {% for item in guides %}
+    <h2 class="library-section-title">{{ t.clientsSection }}</h2>
+    {% for item in visibleGuides %}
       {% if not item.hidden and item.id != 'peppapig-deploy' and item.id != 'clash-deploy' %}{{ guideRow(item) }}{% endif %}
     {% endfor %}
 
-    <h2 class="library-section-title">参考资源</h2>
-    {% for resource in resources %}
+    <h2 class="library-section-title">{{ t.resourcesSection }}</h2>
+    {% for resource in visibleResources %}
       <a class="library-row" href="{{ resource.url | url }}">
         <span class="library-row__index">MP4</span>
         <span class="library-row__main">
@@ -64,20 +71,20 @@ eleventyComputed:
       </a>
     {% endfor %}
   {% elif guideView.key == 'cat' %}
-    <h2 class="library-section-title">cat 内部署</h2>
-    {% for item in guides %}
+    <h2 class="library-section-title">{{ t.deploySection }}</h2>
+    {% for item in visibleGuides %}
       {% if not item.hidden and (item.id == 'peppapig-deploy' or item.id == 'clash-deploy') %}{{ guideRow(item) }}{% endif %}
     {% endfor %}
   {% elif guideView.key == 'cross-platform' %}
     <h2 class="library-section-title">
-      跨平台代理共存
-      <small class="library-section-subtitle">（macOS、Windows、安卓、Linux）</small>
+      {{ t.crossPlatformSection }}
+      <small class="library-section-subtitle">{{ t.crossPlatformPlatforms }}</small>
     </h2>
-    {% for item in guides %}
-      {% if not item.hidden and item.platform == '跨平台' %}{{ guideRow(item) }}{% endif %}
+    {% for item in visibleGuides %}
+      {% if not item.hidden and item.sourcePlatform == '跨平台' %}{{ guideRow(item) }}{% endif %}
     {% endfor %}
-    <h2 class="library-section-title library-section-title--sub">参考资源</h2>
-    {% for resource in resources %}
+    <h2 class="library-section-title library-section-title--sub">{{ t.resourcesSection }}</h2>
+    {% for resource in visibleResources %}
       <a class="library-row" href="{{ resource.url | url }}">
         <span class="library-row__index">MP4</span>
         <span class="library-row__main">
@@ -89,9 +96,9 @@ eleventyComputed:
       </a>
     {% endfor %}
   {% else %}
-    <h2 class="library-section-title">{{ guideView.label }}代理共存</h2>
-    {% for item in guides %}
-      {% if not item.hidden and item.platform == guideView.platform %}{{ guideRow(item) }}{% endif %}
+    <h2 class="library-section-title">{{ guideView.label }} {{ t.clientsSection }}</h2>
+    {% for item in visibleGuides %}
+      {% if not item.hidden and item.sourcePlatform == guideView.sourcePlatform %}{{ guideRow(item) }}{% endif %}
     {% endfor %}
   {% endif %}
 </section>

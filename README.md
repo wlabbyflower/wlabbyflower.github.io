@@ -46,6 +46,26 @@ npm run build
 PATH_PREFIX=/repository-name/ GUIDE_SOURCE_DIR=../peppapigconfigurationguide npm run build
 ```
 
+## I18N 正文翻译
+
+站点 UI 与英文页面会随构建生成。教程正文来自外部源仓库，英文正文由构建前脚本生成：
+
+```bash
+OPENAI_API_KEY=sk-... npm run translate:i18n
+npm run build
+```
+
+脚本默认使用 OpenAI 兼容的 `/v1/chat/completions` 接口。兼容服务可配置：
+
+```bash
+OPENAI_API_KEY=...
+OPENAI_BASE_URL=https://example.com/v1
+OPENAI_TRANSLATION_MODEL=your-model
+npm run translate:i18n
+```
+
+兼容服务通常必须设置 `OPENAI_TRANSLATION_MODEL`，因为模型名由服务商决定。也可用 `TRANSLATION_API_KEY` / `TRANSLATION_BASE_URL`，或用 `OPENAI_MODEL` 作为模型名。若服务支持 Responses API，可设置 `OPENAI_TRANSLATION_API_STYLE=responses`。译文会写入 `src/_generated/i18n/en/guides/`，该目录不提交到仓库。CI 会缓存这个目录；源 Markdown、模型、base URL 或翻译脚本变化时才重新翻译。
+
 ## GitHub Pages
 
 `.github/workflows/deploy.yml` 会在 `main` 分支推送后自动：
@@ -53,8 +73,9 @@ PATH_PREFIX=/repository-name/ GUIDE_SOURCE_DIR=../peppapigconfigurationguide npm
 1. 检出当前站点仓库。
 2. 检出 `wlabbyflower/peppapigconfigurationguide` 的 `main` 分支和 Git LFS 文件。
 3. 根据仓库名设置 Pages 路径前缀。
-4. 从源仓库构建 Eleventy 站点。
-5. 发布 `_site/` 到 GitHub Pages。
+4. 如果配置了 `OPENAI_API_KEY` secret，生成英文教程正文译文。
+5. 从源仓库构建 Eleventy 站点。
+6. 发布 `_site/` 到 GitHub Pages。
 
 在仓库设置中将 Pages 的 Source 设为 **GitHub Actions** 即可。
 

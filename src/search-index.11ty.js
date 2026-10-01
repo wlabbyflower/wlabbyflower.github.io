@@ -1,13 +1,19 @@
 class SearchIndex {
   data() {
     return {
-      permalink: "/search-index.json",
+      pagination: {
+        data: "locales",
+        size: 1,
+        alias: "localeConfig",
+      },
+      permalink: (data) => (data.localeConfig.key === "zh" ? "/search-index.json" : "/en/search-index.json"),
       eleventyExcludeFromCollections: true,
     };
   }
 
-  render({ guides, resources }) {
-    const guideItems = guides
+  render({ localizedGuides, localizedResources, localeConfig }) {
+    const guideItems = localizedGuides
+      .filter((guide) => guide.locale === localeConfig.key)
       .filter((guide) => !guide.hidden)
       .map((guide) => ({
         title: guide.title,
@@ -18,11 +24,13 @@ class SearchIndex {
         text: guide.searchText,
       }));
 
-    const resourceItems = resources.map((resource) => ({
+    const resourceItems = localizedResources
+      .filter((resource) => resource.locale === localeConfig.key)
+      .map((resource) => ({
       title: resource.title,
       summary: resource.summary,
       platform: resource.platform,
-      section: "参考资源",
+      section: localeConfig.key === "zh" ? "参考资源" : "Reference resources",
       url: resource.url,
       text: `${resource.title} ${resource.summary}`,
     }));

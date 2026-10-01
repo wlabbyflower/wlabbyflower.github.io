@@ -1,9 +1,9 @@
 ---
 layout: layouts/base.njk
-title: 页面未找到
-permalink: /404.html
+title: Page not found
+permalink: /en/404.html
 eleventyExcludeFromCollections: true
-locale: zh
+locale: en
 ---
 {% from "components/icon.njk" import icon with context %}
 {% set t = i18n.translations[locale] %}
@@ -12,7 +12,7 @@ locale: zh
   <h1>{{ t.notFoundTitle }}</h1>
   <p>{{ t.notFoundDescription }}</p>
   <div>
-    <a class="button button--primary" href="{{ '/guides/' | url }}">{{ t.browseGuides }} {{ icon('arrow-right') }}</a>
+    <a class="button button--primary" href="{{ '/guides/' | localizePath(locale) | url }}">{{ t.browseGuides }} {{ icon('arrow-right') }}</a>
     <button class="button button--secondary" type="button" data-search-open>{{ icon('search') }} {{ t.navSearch }}</button>
   </div>
 </section>
