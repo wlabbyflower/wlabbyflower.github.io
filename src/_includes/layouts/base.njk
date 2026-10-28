@@ -1,8 +1,6 @@
 {% from "components/icon.njk" import icon with context %}
 {% set activeLocale = guide.locale or guideView.locale or locale or 'zh' %}
 {% set currentLocale = locales | find('key', activeLocale) %}
-{% set targetLocaleKey = 'en' if activeLocale == 'zh' else 'zh' %}
-{% set targetLocale = locales | find('key', targetLocaleKey) %}
 {% set t = i18n.translations[activeLocale] %}
 <!DOCTYPE html>
 <html lang="{{ currentLocale.code }}">
@@ -138,9 +136,6 @@
             <span>{{ t.navSearch }}</span>
             <kbd>⌘ K</kbd>
           </button>
-          <a class="language-toggle" href="{{ page.url | switchLocalePath(targetLocaleKey) | url }}" hreflang="{{ targetLocale.code }}" aria-label="{{ t.languageSwitch }}">
-            {{ t.languageSwitch }}
-          </a>
           <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="{{ t.themeAuto }}" title="{{ t.themeAuto }}">
             {{ icon('sun-moon', 'theme-toggle__auto') }}
             {{ icon('sun', 'theme-toggle__light') }}
@@ -162,7 +157,6 @@
         </div>
         <a href="{{ '/' | localizePath(activeLocale) | url }}">{{ t.navHome }} {{ icon('chevron-right') }}</a>
         <a href="{{ '/guides/' | localizePath(activeLocale) | url }}">{{ t.navAllGuides }} {{ icon('chevron-right') }}</a>
-        <a href="{{ page.url | switchLocalePath(targetLocaleKey) | url }}" hreflang="{{ targetLocale.code }}">{{ t.languageSwitch }} {{ icon('chevron-right') }}</a>
         <a href="{{ site.sourceUrl }}" target="_blank" rel="noreferrer">{{ t.navGithubSource }} {{ icon('external-link') }}</a>
       </nav>
     </div>

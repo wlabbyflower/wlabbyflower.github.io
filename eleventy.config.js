@@ -48,7 +48,6 @@ function withPathPrefix(value) {
 module.exports = function (eleventyConfig) {
   const sourceDocsRoot = getSourceDocsRoot();
   const guides = require("./src/_data/guides");
-  const i18n = require("./src/_data/i18n");
   const guideUrlBySource = new Map(guides.map((guide) => [guide.source, guide.url]));
   const markdownLibrary = markdownIt({
     html: true,
@@ -116,21 +115,7 @@ module.exports = function (eleventyConfig) {
   }
 
   eleventyConfig.addFilter("json", (value) => JSON.stringify(value));
-  eleventyConfig.addFilter("t", (key, locale, variables) =>
-    i18n.translate(key, locale, variables),
-  );
-  eleventyConfig.addFilter("localizePath", (url, locale) => {
-    if (!url || locale === "zh") return url;
-    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(url)) return url;
-    return `/en/${String(url).replace(/^\//, "")}`;
-  });
-  eleventyConfig.addFilter("switchLocalePath", (url, targetLocale) => {
-    const normalizedUrl = url || "/";
-    if (targetLocale === "en") {
-      return normalizedUrl === "/" ? "/en/" : `/en${normalizedUrl}`;
-    }
-    return normalizedUrl.replace(/^\/en(?=\/|$)/, "") || "/";
-  });
+  eleventyConfig.addFilter("localizePath", (url) => url);
   eleventyConfig.addFilter("renderGuideMarkdown", (guide) =>
     markdownLibrary.render(guide.markdown, { guide }),
   );

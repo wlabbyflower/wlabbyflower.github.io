@@ -5,7 +5,7 @@ const { getSourceRepositoryRoot } = require("../../lib/content-source");
 const guideDefinitions = [
   {
     id: "peppapig-deploy",
-    source: "docs/01-微服内代理部署/PeppaPigConfigurationGuide/PeppaPigConfigurationGuide.md",
+    source: "docs/01-微服内代理部署/PeppaPig/README.md",
     url: "/guides/deploy/peppapig/",
     title: "PeppaPig (v2rayA)部署",
     shortTitle: "PeppaPig 部署",
@@ -19,13 +19,13 @@ const guideDefinitions = [
       {
         label: "下载 PeppaPig.lpk",
         type: "LPK",
-        url: "/downloads/01-微服内代理部署/PeppaPigConfigurationGuide/PeppaPig.lpk"
+        url: "/downloads/01-微服内代理部署/PeppaPig/PeppaPig.lpk"
       }
     ]
   },
   {
     id: "clash-deploy",
-    source: "docs/01-微服内代理部署/PeppaPigConfigurationGuide/clash部署教程.md",
+    source: "docs/01-微服内代理部署/Clash/README.md",
     url: "/guides/deploy/clash/",
     title: "Clash部署教程",
     shortTitle: "Clash 部署",
@@ -38,7 +38,7 @@ const guideDefinitions = [
   },
   {
     id: "clash-changelog",
-    source: "docs/01-微服内代理部署/PeppaPigConfigurationGuide/clash部署教程-更新日志.md",
+    source: "docs/01-微服内代理部署/Clash/CHANGELOG.md",
     url: "/guides/deploy/clash/changelog/",
     title: "Clash 部署教程更新日志",
     shortTitle: "Clash 更新日志",
@@ -51,7 +51,7 @@ const guideDefinitions = [
   },
   {
     id: "lan-sharing",
-    source: "docs/02-局域网代理共享/构建内网代理方法：配置代理为微服所在局域网可访问.md",
+    source: "docs/02-局域网代理共享/README.md",
     url: "/guides/lan/port-sharing/",
     title: "构建局域网共享代理",
     shortTitle: "局域网共享代理",
@@ -64,7 +64,7 @@ const guideDefinitions = [
   },
   {
     id: "clash-verge",
-    source: "docs/03-客户端共存/cross-platform/clash/clashverge.md",
+    source: "docs/03-客户端共存/cross-platform/ClashVerge/README.md",
     url: "/guides/clients/clash-verge/",
     title: "Clash Verge 共存配置",
     shortTitle: "Clash Verge",
@@ -76,7 +76,7 @@ const guideDefinitions = [
   },
   {
     id: "sing-box",
-    source: "docs/03-客户端共存/cross-platform/singbox/singbox.json配置.md",
+    source: "docs/03-客户端共存/cross-platform/sing-box/README.md",
     url: "/guides/clients/sing-box/",
     title: "Sing-box 1.12 JSON 配置",
     shortTitle: "Sing-box",
@@ -89,13 +89,13 @@ const guideDefinitions = [
       {
         label: "下载示例 JSON",
         type: "JSON",
-        url: "/downloads/03-客户端共存/cross-platform/singbox/singbox示例.json"
+        url: "/downloads/03-客户端共存/cross-platform/sing-box/singbox-example.json"
       }
     ]
   },
   {
     id: "v2ray-family",
-    source: "docs/03-客户端共存/cross-platform/v2ray系列/v2ray系列.md",
+    source: "docs/03-客户端共存/cross-platform/v2ray/README.md",
     url: "/guides/clients/v2ray/",
     title: "v2ray 系列共存配置",
     shortTitle: "v2ray 系列",
@@ -106,7 +106,7 @@ const guideDefinitions = [
   },
   {
     id: "hiddify",
-    source: "docs/03-客户端共存/cross-platform/Hiddify/Hiddify.md",
+    source: "docs/03-客户端共存/cross-platform/Hiddify/README.md",
     url: "/guides/clients/hiddify/",
     title: "Hiddify 共存配置",
     shortTitle: "Hiddify",
@@ -119,7 +119,7 @@ const guideDefinitions = [
   },
   {
     id: "flclash",
-    source: "docs/03-客户端共存/cross-platform/Flclash/Flclash.md",
+    source: "docs/03-客户端共存/cross-platform/FlClash/README.md",
     url: "/guides/clients/flclash/",
     title: "FlClash 共存方案",
     shortTitle: "FlClash",
@@ -133,13 +133,13 @@ const guideDefinitions = [
       {
         label: "下载覆写脚本",
         type: "JS",
-        url: "/downloads/03-客户端共存/cross-platform/Flclash/flclash_script.js"
+        url: "/downloads/03-客户端共存/cross-platform/FlClash/flclash.js"
       }
     ]
   },
   {
     id: "clashmi",
-    source: "docs/03-客户端共存/cross-platform/ClashMi/ClashMi.md",
+    source: "docs/03-客户端共存/cross-platform/ClashMi/README.md",
     url: "/guides/clients/clashmi/",
     title: "ClashMi 共存方案",
     shortTitle: "ClashMi",
@@ -152,13 +152,13 @@ const guideDefinitions = [
       {
         label: "下载覆写脚本",
         type: "JS",
-        url: "/downloads/03-客户端共存/cross-platform/ClashMi/clashmi_script.js"
+        url: "/downloads/03-客户端共存/cross-platform/ClashMi/clashmi.js"
       }
     ]
   },
   {
     id: "ios-shadowrocket",
-    source: "docs/03-客户端共存/iOS/iOS小火箭配置/iOS端小火箭与cat配置共存.md",
+    source: "docs/03-客户端共存/iOS/Shadowrocket/README.md",
     url: "/guides/clients/ios/shadowrocket/",
     title: "iOS 小火箭共存配置",
     shortTitle: "小火箭",
@@ -172,18 +172,18 @@ const guideDefinitions = [
       {
         label: "基础配置视频",
         type: "MP4",
-        url: "/downloads/03-客户端共存/iOS/iOS小火箭配置/iOS-小火箭.mp4"
+        url: "/downloads/03-客户端共存/iOS/Shadowrocket/iOS-小火箭.mp4"
       },
       {
         label: "域名访问视频",
         type: "MP4",
-        url: "/downloads/03-客户端共存/iOS/iOS小火箭配置/小火箭开启后可以域名访问.mp4"
+        url: "/downloads/03-客户端共存/iOS/Shadowrocket/小火箭开启后可以域名访问.mp4"
       }
     ]
   },
   {
     id: "ios-loon",
-    source: "docs/03-客户端共存/iOS/ios端Loon/Loon配置共存教程.md",
+    source: "docs/03-客户端共存/iOS/Loon/README.md",
     url: "/guides/clients/ios/loon/",
     title: "iOS Loon 共存配置",
     shortTitle: "Loon",
@@ -195,7 +195,7 @@ const guideDefinitions = [
   },
   {
     id: "ios-qx",
-    source: "docs/03-客户端共存/iOS/iOSqx配置/iOSqx.md",
+    source: "docs/03-客户端共存/iOS/QuantumultX/README.md",
     url: "/guides/clients/ios/quantumult-x/",
     title: "iOS Quantumult X 共存配置",
     shortTitle: "Quantumult X",
@@ -206,7 +206,7 @@ const guideDefinitions = [
   },
   {
     id: "ios-stash-quick",
-    source: "docs/03-客户端共存/iOS/iOSstash配置/iOSQuickStash.md",
+    source: "docs/03-客户端共存/iOS/Stash/override.md",
     url: "/guides/clients/ios/stash-quick/",
     title: "iOS Stash Quick 配置",
     shortTitle: "Stash Quick",
@@ -218,7 +218,7 @@ const guideDefinitions = [
   },
   {
     id: "ios-stash",
-    source: "docs/03-客户端共存/iOS/iOSstash配置/iOS端stash与cat配置共存.md",
+    source: "docs/03-客户端共存/iOS/Stash/manual.md",
     url: "/guides/clients/ios/stash/",
     title: "iOS Stash 手动配置",
     shortTitle: "Stash 手动配置",
@@ -231,18 +231,18 @@ const guideDefinitions = [
       {
         label: "下载 Stash 配置",
         type: "STASH",
-        url: "/downloads/03-客户端共存/iOS/iOSstash配置/lzc.stash"
+        url: "/downloads/03-客户端共存/iOS/Stash/lzc.stash"
       },
       {
         label: "查看配置视频",
         type: "MP4",
-        url: "/downloads/03-客户端共存/iOS/iOSstash配置/stash.mp4"
+        url: "/downloads/03-客户端共存/iOS/Stash/stash.mp4"
       }
     ]
   },
   {
     id: "ios-surge",
-    source: "docs/03-客户端共存/iOS/iOSsurge配置/README.md",
+    source: "docs/03-客户端共存/iOS/Surge/README.md",
     url: "/guides/clients/ios/surge/",
     title: "iOS Surge 共存配置",
     shortTitle: "Surge",
@@ -255,18 +255,18 @@ const guideDefinitions = [
       {
         label: "下载 Surge 配置",
         type: "CONF",
-        url: "/downloads/03-客户端共存/iOS/iOSsurge配置/Surge.conf"
+        url: "/downloads/03-客户端共存/iOS/Surge/Surge.conf"
       },
       {
         label: "下载 Surge 模块",
         type: "MODULE",
-        url: "/downloads/03-客户端共存/iOS/iOSsurge配置/Lazycat_ios.sgmodule"
+        url: "/downloads/03-客户端共存/iOS/Surge/Lazycat_ios.sgmodule"
       }
     ]
   },
   {
     id: "macos-qx",
-    source: "docs/03-客户端共存/macOS/macos端QX配置/macos端QX配置.md",
+    source: "docs/03-客户端共存/macOS/QuantumultX/README.md",
     url: "/guides/clients/macos/quantumult-x/",
     title: "macOS Quantumult X 共存配置",
     shortTitle: "Quantumult X",
@@ -277,7 +277,7 @@ const guideDefinitions = [
   },
   {
     id: "macos-shadowrocket",
-    source: "docs/03-客户端共存/macOS/macos端shadowrocket（小火箭）/shadowrocket.md",
+    source: "docs/03-客户端共存/macOS/Shadowrocket/README.md",
     url: "/guides/clients/macos/shadowrocket/",
     title: "macOS Shadowrocket 共存配置",
     shortTitle: "Shadowrocket",
@@ -289,7 +289,7 @@ const guideDefinitions = [
   },
   {
     id: "macos-surge",
-    source: "docs/03-客户端共存/macOS/macos端surge/surge.md",
+    source: "docs/03-客户端共存/macOS/Surge/README.md",
     url: "/guides/clients/macos/surge/",
     title: "macOS Surge 共存配置",
     shortTitle: "Surge",
@@ -302,7 +302,7 @@ const guideDefinitions = [
       {
         label: "下载 Surge 模块",
         type: "MODULE",
-        url: "/downloads/03-客户端共存/macOS/macos端surge/Lazycat.sgmodule"
+        url: "/downloads/03-客户端共存/macOS/Surge/Lazycat.sgmodule"
       }
     ]
   }

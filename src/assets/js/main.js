@@ -349,7 +349,7 @@
   });
 
   if (!reducedMotion.matches && "IntersectionObserver" in window) {
-    const revealItems = document.querySelectorAll(".section-heading, .path-item, .recommendation-section__copy, .deployment-link, .client-row, .library-row, .article-header");
+    const revealItems = document.querySelectorAll(".section-heading, .path-item, .client-row, .library-row, .article-header");
     revealItems.forEach((item) => item.classList.add("reveal"));
     const revealObserver = new IntersectionObserver(
       (entries, observer) => {
@@ -362,84 +362,5 @@
       { rootMargin: "0px 0px -8%", threshold: 0.08 },
     );
     revealItems.forEach((item) => revealObserver.observe(item));
-  }
-
-  const ambientCanvas = document.querySelector("[data-ambient-canvas]");
-  if (ambientCanvas) {
-    const context = ambientCanvas.getContext("2d");
-    const strands = Array.from({ length: 10 }, (_, index) => ({
-      phase: index * 0.72,
-      offset: (index - 4.5) * 0.038,
-      speed: 0.00008 + index * 0.000004,
-    }));
-    let canvasWidth = 0;
-    let canvasHeight = 0;
-    let animationFrame = 0;
-    let palette = {};
-
-    function readCanvasPalette() {
-      const styles = getComputedStyle(root);
-      palette = {
-        line: styles.getPropertyValue("--canvas-line").trim(),
-        lineStrong: styles.getPropertyValue("--canvas-line-strong").trim(),
-        node: styles.getPropertyValue("--canvas-node").trim(),
-      };
-    }
-
-    function resizeAmbientCanvas() {
-      const bounds = ambientCanvas.getBoundingClientRect();
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-      canvasWidth = Math.max(Math.round(bounds.width), 1);
-      canvasHeight = Math.max(Math.round(bounds.height), 1);
-      ambientCanvas.width = Math.round(canvasWidth * pixelRatio);
-      ambientCanvas.height = Math.round(canvasHeight * pixelRatio);
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    }
-
-    function drawAmbientScene(timestamp = 0) {
-      const time = reducedMotion.matches ? 0 : timestamp;
-      context.clearRect(0, 0, canvasWidth, canvasHeight);
-
-      strands.forEach((strand, index) => {
-        const motion = Math.sin(time * strand.speed + strand.phase) * canvasWidth * 0.018;
-        const startX = canvasWidth * (0.58 + strand.offset) + motion;
-        const middleX = canvasWidth * (0.76 + strand.offset * 0.45) - motion * 0.5;
-        const endX = canvasWidth * (0.9 + strand.offset * 0.2) + motion * 0.25;
-        context.lineWidth = index === 4 ? 1.4 : 1;
-        context.strokeStyle = index === 4 ? palette.lineStrong : palette.line;
-        context.beginPath();
-        context.moveTo(startX, -40);
-        context.bezierCurveTo(middleX, canvasHeight * 0.22, middleX - canvasWidth * 0.08, canvasHeight * 0.68, endX, canvasHeight + 40);
-        context.stroke();
-      });
-
-      context.fillStyle = palette.node;
-      for (let index = 0; index < 9; index += 1) {
-        const progress = (index + 1) / 10;
-        const x = canvasWidth * (0.64 + progress * 0.24) + Math.sin(time * 0.0001 + index) * 8;
-        const y = canvasHeight * (0.12 + progress * 0.76);
-        context.beginPath();
-        context.arc(x, y, index === 4 ? 2.4 : 1.5, 0, Math.PI * 2);
-        context.fill();
-      }
-
-      if (!reducedMotion.matches) animationFrame = requestAnimationFrame(drawAmbientScene);
-    }
-
-    readCanvasPalette();
-    resizeAmbientCanvas();
-    drawAmbientScene();
-    window.addEventListener("resize", () => {
-      resizeAmbientCanvas();
-      if (reducedMotion.matches) drawAmbientScene();
-    });
-    window.addEventListener("peppapigthemechange", () => {
-      readCanvasPalette();
-      if (reducedMotion.matches) drawAmbientScene();
-    });
-    document.addEventListener("visibilitychange", () => {
-      cancelAnimationFrame(animationFrame);
-      if (!document.hidden && !reducedMotion.matches) animationFrame = requestAnimationFrame(drawAmbientScene);
-    });
   }
 })();
